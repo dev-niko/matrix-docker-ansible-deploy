@@ -1,13 +1,13 @@
 matrix_bot_matrix_strauby_bot_enabled: true
 
 matrix_bot_matrix_strauby_bot_container_image_self_build: false
-matrix_bot_matrix_strauby_bot_container_repo: "https://github.com/dev-niko/matrix-strauby-bot"
+matrix_bot_matrix_strauby_bot_container_repo: "https://github.com/dev-niko/matrix-strauby-bot.git"
 matrix_bot_matrix_strauby_bot_container_repo_version: "{{ 'master' if matrix_bot_matrix_strauby_bot_version == 'latest' else matrix_bot_matrix_strauby_bot_version }}"
-matrix_bot_matrix_strauby_bot_container_src_files_path: "{{ matrix_base_data_path }}/matrix-reminder-bot/docker-src"
+matrix_bot_matrix_strauby_bot_container_src_files_path: "{{ matrix_base_data_path }}/matrix-strauby-bot/docker-src"
 
-# renovate: datasource=docker depName=ghcr.io/anoadragon453/matrix-reminder-bot
+# renovate: datasource=docker depName=ghcr.io/anoadragon453/matrix-strauby-bot
 matrix_bot_matrix_strauby_bot_version: v0.4.0
-matrix_bot_matrix_strauby_bot_container_image: "{{ matrix_bot_matrix_strauby_bot_container_image_registry_prefix }}anoadragon453/matrix-reminder-bot:{{ matrix_bot_matrix_strauby_bot_version }}"
+matrix_bot_matrix_strauby_bot_container_image: "{{ matrix_bot_matrix_strauby_bot_container_image_registry_prefix }}anoadragon453/matrix-strauby-bot:{{ matrix_bot_matrix_strauby_bot_version }}"
 matrix_bot_matrix_strauby_bot_container_image_registry_prefix: "{{ 'localhost/' if matrix_bot_matrix_strauby_bot_container_image_self_build else matrix_bot_matrix_strauby_bot_container_image_registry_prefix_upstream }}"
 matrix_bot_matrix_strauby_bot_container_image_registry_prefix_upstream: "{{ matrix_bot_matrix_strauby_bot_container_image_registry_prefix_upstream_default }}"
 matrix_bot_matrix_strauby_bot_container_image_registry_prefix_upstream_default: "ghcr.io/"
@@ -28,13 +28,13 @@ matrix_bot_matrix_strauby_bot_container_additional_networks: "{{ matrix_bot_matr
 matrix_bot_matrix_strauby_bot_container_additional_networks_auto: []
 matrix_bot_matrix_strauby_bot_container_additional_networks_custom: []
 
-# List of systemd services that matrix-bot-matrix-reminder-bot.service depends on
+# List of systemd services that matrix-bot-matrix-strauby-bot.service depends on
 matrix_bot_matrix_strauby_bot_systemd_required_services_list: "{{ matrix_bot_matrix_strauby_bot_systemd_required_services_list_default + matrix_bot_matrix_strauby_bot_systemd_required_services_list_auto + matrix_bot_matrix_strauby_bot_systemd_required_services_list_custom }}"
 matrix_bot_matrix_strauby_bot_systemd_required_services_list_default: "{{ [devture_systemd_docker_base_docker_service_name] if devture_systemd_docker_base_docker_service_name else [] }}"
 matrix_bot_matrix_strauby_bot_systemd_required_services_list_auto: []
 matrix_bot_matrix_strauby_bot_systemd_required_services_list_custom: []
 
-# List of systemd services that matrix-bot-matrix-reminder-bot.service wants
+# List of systemd services that matrix-bot-matrix-strauby-bot.service wants
 matrix_bot_matrix_strauby_bot_systemd_wanted_services_list: []
 
 # Database-related configuration fields.
