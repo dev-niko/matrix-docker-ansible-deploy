@@ -1,3 +1,11 @@
+# SPDX-FileCopyrightText: 2026 Niko Straub
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+---
+# matrix-strauby-bot is a family friendly chat / ai assistant bot for Matrix
+# Project source code URL: https://github.com/dev-niko/matrix-strauby-bot
+
 matrix_bot_matrix_strauby_bot_enabled: true
 
 matrix_bot_matrix_strauby_bot_container_image_self_build: false
