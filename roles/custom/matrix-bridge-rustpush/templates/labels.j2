@@ -5,44 +5,42 @@ SPDX-FileCopyrightText: 2026 Jason LaGuidice
 SPDX-License-Identifier: AGPL-3.0-or-later
 #}
 
-{% if matrix_rustpush_bridge_container_labels_traefik_enabled %}
+{% if matrix_bridge_rustpush_container_labels_traefik_enabled %}
 traefik.enable=true
 
-{% if matrix_rustpush_bridge_container_labels_traefik_docker_network %}
-traefik.docker.network={{ matrix_rustpush_bridge_container_labels_traefik_docker_network }}
+{% if matrix_bridge_rustpush_container_labels_traefik_docker_network %}
+traefik.docker.network={{ matrix_bridge_rustpush_container_labels_traefik_docker_network }}
 {% endif %}
 
-traefik.http.services.matrix-rustpush-bridge-metrics.loadbalancer.server.port=8000
+traefik.http.services.matrix-rustpush-bridge.loadbalancer.server.port=8081
 
-{% if matrix_rustpush_bridge_container_labels_metrics_enabled %}
+{% if matrix_bridge_rustpush_container_labels_exposure_enabled %}
 ############################################################
 #                                                          #
-# Metrics                                                  #
+# Bridge API exposure                                      #
 #                                                          #
 ############################################################
 
-{% if matrix_rustpush_bridge_container_labels_metrics_middleware_basic_auth_enabled %}
-traefik.http.middlewares.matrix-rustpush-bridge-metrics-basic-auth.basicauth.users={{ matrix_rustpush_bridge_container_labels_metrics_middleware_basic_auth_users }}
-traefik.http.routers.matrix-rustpush-bridge-metrics.middlewares=matrix-rustpush-bridge-metrics-basic-auth
+traefik.http.middlewares.matrix-rustpush-bridge-exposure-strip-prefix.stripprefix.prefixes={{ matrix_bridge_rustpush_exposure_path_prefix }}
+traefik.http.routers.matrix-rustpush-bridge-exposure.middlewares=matrix-rustpush-bridge-exposure-strip-prefix
+
+traefik.http.routers.matrix-rustpush-bridge-exposure.rule={{ matrix_bridge_rustpush_container_labels_exposure_traefik_rule }}
+
+{% if matrix_bridge_rustpush_container_labels_exposure_traefik_priority | int > 0 %}
+traefik.http.routers.matrix-rustpush-bridge-exposure.priority={{ matrix_bridge_rustpush_container_labels_exposure_traefik_priority }}
 {% endif %}
 
-traefik.http.routers.matrix-rustpush-bridge-metrics.rule={{ matrix_rustpush_bridge_container_labels_metrics_traefik_rule }}
+traefik.http.routers.matrix-rustpush-bridge-exposure.service=matrix-rustpush-bridge
+traefik.http.routers.matrix-rustpush-bridge-exposure.entrypoints={{ matrix_bridge_rustpush_container_labels_exposure_traefik_entrypoints }}
 
-{% if matrix_rustpush_bridge_container_labels_metrics_traefik_priority | int > 0 %}
-traefik.http.routers.matrix-rustpush-bridge-metrics.priority={{ matrix_rustpush_bridge_container_labels_metrics_traefik_priority }}
-{% endif %}
-
-traefik.http.routers.matrix-rustpush-bridge-metrics.service=matrix-rustpush-bridge-metrics
-traefik.http.routers.matrix-rustpush-bridge-metrics.entrypoints={{ matrix_rustpush_bridge_container_labels_metrics_traefik_entrypoints }}
-
-traefik.http.routers.matrix-rustpush-bridge-metrics.tls={{ matrix_rustpush_bridge_container_labels_metrics_traefik_tls | to_json }}
-{% if matrix_rustpush_bridge_container_labels_metrics_traefik_tls %}
-traefik.http.routers.matrix-rustpush-bridge-metrics.tls.certResolver={{ matrix_rustpush_bridge_container_labels_metrics_traefik_tls_certResolver }}
+traefik.http.routers.matrix-rustpush-bridge-exposure.tls={{ matrix_bridge_rustpush_container_labels_exposure_traefik_tls | to_json }}
+{% if matrix_bridge_rustpush_container_labels_exposure_traefik_tls %}
+traefik.http.routers.matrix-rustpush-bridge-exposure.tls.certResolver={{ matrix_bridge_rustpush_container_labels_exposure_traefik_tls_certResolver }}
 {% endif %}
 
 ############################################################
 #                                                          #
-# /Metrics                                                 #
+# /Bridge API exposure                                     #
 #                                                          #
 ############################################################
 {% endif %}
@@ -50,4 +48,4 @@ traefik.http.routers.matrix-rustpush-bridge-metrics.tls.certResolver={{ matrix_r
 
 {% endif %}
 
-{{ matrix_rustpush_bridge_container_labels_additional_labels }}
+{{ matrix_bridge_rustpush_container_labels_additional_labels }}
