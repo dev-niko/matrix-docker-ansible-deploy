@@ -32,13 +32,11 @@ When the diff base cannot be determined (a new branch, a force push), it falls b
 
 ## Automerge
 
-A role that has a scenario is listed in the Molecule automerge rule in `.github/renovate.json`, so
-patch bumps of its component merge on their own once the scenario has passed on them.
+A role that has a scenario is listed in the Molecule patch-automerge rule in `.github/renovate.json`, so patch bumps of its component merge on their own once the scenario has passed on them. Some roles with a sufficiently weight-bearing compatibility gate are explicitly approved in a narrower minor-automerge rule too. Major updates are never included in these rules.
 
-**Add your role to that list when you add its scenario.** `bin/check-molecule-automerge-list.py`
-runs from prek and fails the commit if the list and the scenarios have drifted apart. The direction
-that matters is a role staying in the list after losing its scenario, since its bumps would then
-merge with nothing exercising them.
+Both rules use branch automerge: an update that passes its scenario merges without opening a pull request, while a failure surfaces as a pull request instead.
+
+**Add your role to the patch list when you add its scenario.** Add it to the minor list only when that broader policy has been explicitly approved and the scenario exercises enough real behavior to serve as a minor-release compatibility gate. `bin/check-molecule-automerge-list.py` runs from prek and fails the commit if the patch list and scenarios drift apart, or if a minor-automerge entry is not backed by both a scenario and the patch rule.
 
 ## Writing a scenario
 
@@ -85,6 +83,29 @@ passes is not necessarily an assertion that works: one control here asserted tha
 emitted no DEBUG records from a particular module, and it passed just as happily with that module
 set to `debug`, because the module emits none on a first run either way. It was green for the wrong
 reason, and only breaking it deliberately exposed that.
+
+### Make a failure identify the broken control
+
+Write each independently falsifiable condition as its own item under `that`. Ansible evaluates the
+items in order and reports the first false expression in its `assertion` result field. When several
+conditions are folded into one expression with `and`, it can only report that whole expression:
+
+```yaml
+that:
+  - service.status.ActiveState == 'active'
+  - service.status.NRestarts is defined
+  - service.status.NRestarts | int == 0
+```
+
+Keeping related conditions in one assertion task is fine. Split them into separately named tasks
+when they describe different operational claims or remedies — for example, the container image,
+runtime identity, network attachment and published ports. `ansible.builtin.assert` runs on the
+controller without connecting to the target, so the extra tasks add negligible runtime compared to
+the probes that gathered the values.
+
+Falsify the real control by changing an observed input or an expected value. Adding a literal
+`false` condition only proves that `ansible.builtin.assert` itself can fail; it does not prove that
+the scenario detects the defect it claims to detect.
 
 Two traps make a falsification pass when it should fail:
 
