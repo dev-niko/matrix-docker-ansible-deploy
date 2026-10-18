@@ -969,6 +969,25 @@ devture_systemd_service_manager_services_list_auto: |
 
 ########################################################################
 #                                                                      #
+# cleanup                                                              #
+#                                                                      #
+########################################################################
+
+# All cleanup tasks are off by default. See docs/configuring-playbook-system-cleanup.md
+
+system_cleanup_identifier: matrix-system-cleanup
+
+system_cleanup_base_path: "{{ matrix_base_data_path }}/system-cleanup"
+
+########################################################################
+#                                                                      #
+# /cleanup                                                             #
+#                                                                      #
+########################################################################
+
+
+########################################################################
+#                                                                      #
 # com.devture.ansible.role.timesync                                    #
 #                                                                      #
 ########################################################################
@@ -4046,8 +4065,9 @@ jitsi_web_stun_servers: |
     else [ 'stun:meet-jit-si-turnrelay.jitsi.net:443']
   }}
 
-# The Jitsi instance installed by this playbook is meant for embedding into Matrix clients, so framing is allowed.
-jitsi_web_framing_enabled: true
+# The Jitsi instance installed by this playbook is meant for embedding into Matrix clients, so framing is allowed from anywhere.
+# To restrict it, set this to `true` and list any additional origins in `jitsi_web_http_header_content_security_policy_frame_ancestors_custom`.
+jitsi_web_http_header_content_security_policy_frame_ancestors_enabled: false
 
 # Jitsi (Prosody) only seems to support authenticating with coturn using `auth-secret`, not `lt-cred-mech`.
 # See: https://prosody.im/doc/coturn
@@ -6384,6 +6404,18 @@ traefik_additional_entrypoints_auto: |
     ([matrix_playbook_livekit_turn_traefik_entrypoint_definition] if matrix_playbook_livekit_turn_traefik_entrypoint_enabled else [])
   }}
 
+# A TLS option for the LiveKit TURN/TLS router: Traefik's default TLS options reject the `stun.turn` ALPN protocol.
+traefik_config_tls_options_auto: |
+  {{
+    (
+      {
+        matrix_playbook_livekit_turn_traefik_tls_options_name: {
+          'alpnProtocols': matrix_playbook_livekit_turn_traefik_tls_options_alpn_protocols,
+        }
+      } if livekit_server_container_labels_turn_traefik_enabled else {}
+    )
+  }}
+
 traefik_config_providers_docker_endpoint: "{{ container_socket_proxy_endpoint if container_socket_proxy_enabled else 'unix:///var/run/docker.sock' }}"
 
 traefik_container_image_registry_prefix_upstream: "{{ matrix_container_global_registry_prefix_override if matrix_container_global_registry_prefix_override else traefik_container_image_registry_prefix_upstream_default }}"
@@ -6571,6 +6603,7 @@ livekit_server_container_labels_traefik_tls_certResolver: "{{ traefik_certResolv
 livekit_server_container_labels_turn_traefik_enabled: "{{ matrix_playbook_livekit_turn_traefik_entrypoint_enabled }}"
 livekit_server_container_labels_turn_traefik_entrypoints: "{{ matrix_playbook_livekit_turn_traefik_entrypoint_name }}"
 livekit_server_container_labels_turn_traefik_tls_certResolver: "{{ traefik_certResolver_primary }}"
+livekit_server_container_labels_turn_traefik_tls_options: "{{ (matrix_playbook_livekit_turn_traefik_tls_options_name + '@file') if livekit_server_container_labels_turn_traefik_enabled else '' }}"
 
 livekit_server_container_labels_public_metrics_middleware_basic_auth_enabled: "{{ matrix_metrics_exposure_http_basic_auth_enabled }}"
 livekit_server_container_labels_public_metrics_middleware_basic_auth_users: "{{ matrix_metrics_exposure_http_basic_auth_users }}"
@@ -6590,7 +6623,8 @@ livekit_server_config_keys_auto: |-
     )
   }}
 
-# We only wish for matrix-livekit-jwt-service to create rooms, only for users on trusted homeservers.
+# Only users on trusted homeservers may publish media or trigger room creation on this SFU.
+# Other federated users subscribe here and publish on their own SFU.
 # See `matrix_livekit_jwt_service_environment_variable_livekit_full_access_homeservers`.
 #
 # Ref:
